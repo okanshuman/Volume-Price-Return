@@ -8,6 +8,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+def fetch_current_prices(stocks):
+    current_prices = {}
+    for stock in stocks:
+        ticker_symbol = stock['symbol']
+        try:
+            ticker = yf.Ticker(ticker_symbol)
+            current_data = ticker.history(period="1d")
+            if not current_data.empty:
+                current_prices[ticker_symbol] = current_data['Close'].iloc[-1]  # Get the latest closing price
+        except Exception as e:
+            logging.error(f"Error fetching current price for {ticker_symbol}: {e}")
+    return current_prices
+
 def fetch_opening_price(ticker_symbol):
     attempts = 3
     for attempt in range(attempts):

@@ -8,6 +8,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
@@ -34,7 +35,7 @@
             <th>Name</th>
             <th>Symbol</th>
             <th>Date</th>
-            <th>Tracked Opening Price</th> <!-- Updated header for Tracked Opening Price -->
+            <th>Tracked Opening Price</th>
         </tr>
     </thead>
     <tbody id="tableBody">
@@ -42,38 +43,86 @@
     </tbody>
 </table>
 
+<h2>Matching Stocks (Within ±2%)</h2>
+<table id="matchingStockTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Symbol</th>
+            <th>Tracked Opening Price</th>
+            <th>Current Price</th>
+        </tr>
+    </thead>
+    <tbody id="matchingTableBody">
+         <!-- Matching stocks will be inserted here -->
+     </tbody>
+</table>
+
 <script>
 // Function to fetch stock data from the API
 function fetchStockData() {
-    const tableBody = document.getElementById('tableBody');
-    tableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>'; // Show loading message
+     const tableBody = document.getElementById('tableBody');
+     tableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>'; // Show loading message
 
-    fetch('/api/all_stocks') // Use relative URL for flexibility 
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok ' + response.statusText);
-            }
-            return response.json();
-        })
-        .then(data => {
-            tableBody.innerHTML = ''; // Clear existing data
+     fetch('/api/all_stocks') // Use relative URL for flexibility 
+         .then(response => {
+             if (!response.ok) {
+                 throw new Error('Network response was not ok ' + response.statusText);
+             }
+             return response.json();
+         })
+         .then(data => {
+             tableBody.innerHTML = ''; // Clear existing data
 
-            // Iterate over the data and create table rows
-            data.forEach(stock => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${stock.name}</td>
-                    <td>${stock.symbol}</td>
-                    <td>${stock.date}</td>
-                    <td>${stock.tracked_opening_price !== null ? stock.tracked_opening_price.toFixed(2) : 'N/A'}</td> <!-- Display Tracked Opening Price -->
-                `;
-                tableBody.appendChild(row);
-            });
-        })
-        .catch(error => {
-            console.error('Error fetching stock data:', error);
-            tableBody.innerHTML = '<tr><td colspan="4" class="loading">Error fetching data. Please try again later.</td></tr>'; // Show error message 
-        });
+             // Iterate over the data and create table rows
+             data.forEach(stock => {
+                 const row = document.createElement('tr');
+                 row.innerHTML = `
+                     <td>${stock.name}</td>
+                     <td>${stock.symbol}</td>
+                     <td>${stock.date}</td>
+                     <td>${stock.tracked_opening_price !== null ? stock.tracked_opening_price.toFixed(2) : 'N/A'}</td> <!-- Display Tracked Opening Price -->
+                 `;
+                 tableBody.appendChild(row);
+             });
+         })
+         .catch(error => {
+             console.error('Error fetching stock data:', error);
+             tableBody.innerHTML = '<tr><td colspan="4" class="loading">Error fetching data. Please try again later.</td></tr>'; // Show error message 
+         });
+}
+
+// Function to fetch matching stocks from the API (within ±2%)
+function fetchMatchingStocks() {
+     const matchingTableBody = document.getElementById('matchingTableBody');
+     matchingTableBody.innerHTML = '<tr><td colspan="4" class="loading">Loading...</td></tr>'; // Show loading message
+
+     fetch('/api/matching_stocks') // Use relative URL for flexibility 
+         .then(response => {
+             if (!response.ok) {
+                 throw new Error('Network response was not ok ' + response.statusText);
+             }
+             return response.json();
+         })
+         .then(data => {
+             matchingTableBody.innerHTML = ''; // Clear existing data
+
+             // Iterate over the data and create table rows for matching stocks.
+             data.forEach(stock => {
+                 const row = document.createElement('tr');
+                 row.innerHTML = `
+                     <td>${stock.name}</td>
+                     <td>${stock.symbol}</td>
+                     <td>${stock.tracked_opening_price !== null ? stock.tracked_opening_price.toFixed(2) : 'N/A'}</td> <!-- Display Tracked Opening Price -->
+                     <td>${stock.current_price !== null ? stock.current_price.toFixed(2) : 'N/A'}</td> <!-- Display Current Price -->
+                 `;
+                 matchingTableBody.appendChild(row);
+             });
+         })
+         .catch(error => {
+             console.error('Error fetching matching stocks:', error);
+             matchingTableBody.innerHTML = '<tr><td colspan="4" class="loading">Error fetching data. Please try again later.</td></tr>'; // Show error message 
+         });
 }
 
 // Fetch stock data every 5 minutes (300000 milliseconds)
@@ -81,6 +130,7 @@ setInterval(fetchStockData, 300000);
 
 // Initial fetch when the page loads 
 fetchStockData();
+fetchMatchingStocks(); // Fetch matching stocks when the page loads.
 </script>
 
 </body>

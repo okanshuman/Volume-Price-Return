@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from datetime import datetime
-from fetch_stocks import fetch_stocks
+from fetch_stocks import fetch_stocks, fetch_current_prices
 from db_operations import db, init_db, add_stocks, Stock
 from flask_apscheduler import APScheduler
 import logging
@@ -51,6 +51,34 @@ def get_all_stocks():
         return jsonify(result)
     except Exception as e:
         logging.error(f"Error in get_all_stocks: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/matching_stocks', methods=['GET'])
+def get_matching_stocks():
+    try:
+        all_stocks = Stock.query.all()  # Query all stock records
+        stocks_to_check = [{'name': stock.name, 'symbol': stock.symbol, 'tracked_opening_price': stock.tracked_opening_price} for stock in all_stocks]
+        
+        # Fetch current prices
+        current_prices = fetch_current_prices(stocks_to_check)
+
+        # Find matching stocks (within 2% range)
+        matching_stocks = [
+            {
+                'name': stock['name'],
+                'symbol': stock['symbol'],
+                'tracked_opening_price': stock['tracked_opening_price'],
+                'current_price': current_prices.get(stock['symbol'])
+            }
+            for stock in stocks_to_check
+            if current_prices.get(stock['symbol']) is not None and \
+               (current_prices[stock['symbol']] >= stock['tracked_opening_price'] * 0.98 and \
+                current_prices[stock['symbol']] <= stock['tracked_opening_price'] * 1.02)
+        ]
+
+        return jsonify(matching_stocks)
+    except Exception as e:
+        logging.error(f"Error in get_matching_stocks: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 # Define a job to call the get_stocks function every 5 minutes
