@@ -45,7 +45,7 @@ def get_stocks():
 def get_all_stocks():
     try:
         all_stocks = Stock.query.all()  # Query all stock records
-        result = [{'name': stock.name, 'symbol': stock.symbol, 'date': stock.date, 'opening_price': stock.opening_price} for stock in all_stocks]
+        result = [{'name': stock.name, 'symbol': stock.symbol, 'date': stock.date, 'tracked_opening_price': stock.tracked_opening_price} for stock in all_stocks]
         
         logging.info(f"Fetched stocks: {result}")  # Log the fetched stocks
         return jsonify(result)

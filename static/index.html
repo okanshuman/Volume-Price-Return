@@ -34,7 +34,7 @@
             <th>Name</th>
             <th>Symbol</th>
             <th>Date</th>
-            <th>Opening Price</th> <!-- New header for Opening Price -->
+            <th>Tracked Opening Price</th> <!-- Updated header for Tracked Opening Price -->
         </tr>
     </thead>
     <tbody id="tableBody">
@@ -65,7 +65,7 @@ function fetchStockData() {
                     <td>${stock.name}</td>
                     <td>${stock.symbol}</td>
                     <td>${stock.date}</td>
-                    <td>${stock.opening_price !== null ? stock.opening_price.toFixed(2) : 'N/A'}</td> <!-- Display Opening Price -->
+                    <td>${stock.tracked_opening_price !== null ? stock.tracked_opening_price.toFixed(2) : 'N/A'}</td> <!-- Display Tracked Opening Price -->
                 `;
                 tableBody.appendChild(row);
             });
