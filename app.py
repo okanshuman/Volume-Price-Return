@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from datetime import datetime
 from fetch_stocks import fetch_stocks, fetch_current_prices
-from db_operations import db, init_db, add_stocks, Stock
+from db_operations import db, init_db, add_stocks, Stock, remove_old_stocks
 from flask_apscheduler import APScheduler
 import logging
 
@@ -62,7 +62,7 @@ def get_matching_stocks():
         # Fetch current prices
         current_prices = fetch_current_prices(stocks_to_check)
 
-        # Find matching stocks (within 2% range)
+        # Find matching stocks (within ±2% range)
         matching_stocks = [
             {
                 'name': stock['name'],
@@ -81,8 +81,18 @@ def get_matching_stocks():
         logging.error(f"Error in get_matching_stocks: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+# Define a job to remove old stocks every day (24 hours)
+@scheduler.task('interval', id='remove_old_stocks_job', hours=24)  
+def remove_old_stocks_job():
+    with app.app_context():  # Ensure the app context is available
+        try:
+            logging.info("Removing old stocks...")
+            remove_old_stocks()  # Call the function to remove old stocks
+        except Exception as e:
+            logging.error(f"Error removing old stocks: {str(e)}")
+
 # Define a job to call the get_stocks function every 5 minutes
-@scheduler.task('interval', id='fetch_stocks_job', seconds=300)  # 300 seconds = 5 minutes
+@scheduler.task('interval', id='fetch_stocks_job', seconds=300)  
 def fetch_stocks_job():
     with app.app_context():  # Ensure the app context is available
         try:

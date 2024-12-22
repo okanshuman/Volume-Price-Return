@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import logging
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
 
@@ -24,7 +25,6 @@ def init_db(app):
 def add_stocks(stocks, current_date):
     try:
         for stock in stocks:
-            # Check if an entry already exists with the same symbol, date, and tracked_opening_price
             existing_stock = Stock.query.filter_by(
                 symbol=stock['symbol'],
                 date=current_date,
@@ -45,3 +45,18 @@ def add_stocks(stocks, current_date):
         db.session.rollback()  # Rollback in case of error
         logging.error(f"Error adding stocks: {str(e)}")
         raise  # Re-raise the exception after logging
+
+def remove_old_stocks():
+    try:
+        cutoff_date = datetime.now() - timedelta(days=30)
+        cutoff_date_str = cutoff_date.strftime("%Y-%m-%d")  # Format as string for comparison
+
+        old_stocks = Stock.query.filter(Stock.date < cutoff_date_str).all()
+        for stock in old_stocks:
+            db.session.delete(stock)
+
+        db.session.commit()  # Commit the changes
+        logging.info(f"Removed {len(old_stocks)} old stocks from the database.")
+    except Exception as e:
+        db.session.rollback()  # Rollback in case of error
+        logging.error(f"Error removing old stocks: {str(e)}")
