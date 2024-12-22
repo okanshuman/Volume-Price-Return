@@ -77,7 +77,7 @@ def remove_old_stocks_job():
             logging.error(f"Error removing old stocks: {str(e)}")
 
 # Define a job to fetch matching stocks every 5 minutes
-@scheduler.task('interval', id='fetch_matching_stocks_job', minutes=5)
+@scheduler.task('interval', id='fetch_matching_stocks_job', minutes=1)
 def fetch_matching_stocks_job():
     global latest_matching_stocks  # Use global variable to store matching stocks
     with app.app_context():  # Ensure the app context is available
@@ -88,19 +88,20 @@ def fetch_matching_stocks_job():
             current_prices = fetch_current_prices(stocks_to_check)  # Fetch current prices
             
             # Logic to find matching stocks (within ±2%)
-            latest_matching_stocks = [
-                {
-                    'name': stock['name'],
-                    'symbol': stock['symbol'],
-                    'tracked_opening_price': stock['tracked_opening_price'],
-                    'current_price': current_prices.get(stock['symbol'])
-                }
-                for stock in stocks_to_check
-                if current_prices.get(stock['symbol']) is not None and \
-                   (current_prices[stock['symbol']] >= stock['tracked_opening_price'] * 0.98 and \
-                    current_prices[stock['symbol']] <= stock['tracked_opening_price'] * 1.02)
-            ]
+            matching_stocks = {}
+            for stock in stocks_to_check:
+                current_price = current_prices.get(stock['symbol'])
+                if current_price is not None and \
+                   (current_price >= stock['tracked_opening_price'] * 0.98 and \
+                    current_price <= stock['tracked_opening_price'] * 1.02):
+                    matching_stocks[stock['symbol']] = {
+                        'name': stock['name'],
+                        'symbol': stock['symbol'],
+                        'tracked_opening_price': stock['tracked_opening_price'],
+                        'current_price': current_price
+                    }
             
+            latest_matching_stocks = list(matching_stocks.values())  # Store unique entries only
             logging.info(f"Updated matching stocks: {latest_matching_stocks}")
 
         except Exception as e:
