@@ -172,3 +172,4 @@ cython_debug/
 ._app.py
 ._db_operations.py
 ._fetch_stocks.py
+static/._index.html
