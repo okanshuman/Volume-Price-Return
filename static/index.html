@@ -65,10 +65,17 @@
             color: #e74c3c; /* Red for loading/error messages */
         }
 
+        .note {
+            margin-top: 20px; /* Space above the note */
+            text-align: center; /* Center align the note */
+            color: #ecf0f1; /* Light gray color for the note */
+        }
+
         @media (max-width: 600px) { /* Media query for mobile devices */
             h2 {
                 font-size: 28px; /* Adjust header font size */
                 margin: 5px 0; /* Adjust margin on mobile */
+                text-decoration: underline; /* Underline on mobile as well */
             }
             .animated-header {
                 font-size: 30px; /* Adjust animated header size */
@@ -114,6 +121,8 @@
          <!-- Matching stocks will be inserted here -->
      </tbody>
 </table>
+
+<p class="note">Ignore ".NS" in the stock symbol.</p> <!-- Updated note at the bottom -->
 
 <script>
 // Function to fetch stock data from the API
