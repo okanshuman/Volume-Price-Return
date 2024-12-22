@@ -116,7 +116,7 @@ def fetch_new_stocks_job():
             logging.error(f"Error fetching new stocks: {str(e)}")
 
 # Define a job to fetch matching stocks every minute
-@scheduler.task('interval', id='fetch_matching_stocks_job', minutes=1)
+@scheduler.task('interval', id='fetch_matching_stocks_job', minutes=5)
 def fetch_matching_stocks_job():
     global latest_matching_stocks  # Use global variable to store matching stocks
     with app.app_context():  # Ensure the app context is available
