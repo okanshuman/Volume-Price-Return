@@ -169,3 +169,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+._app.py
+._db_operations.py
+._fetch_stocks.py
