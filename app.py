@@ -6,6 +6,7 @@ from fetch_stocks import fetch_stocks, fetch_current_prices
 from db_operations import db, init_db, add_stocks, Stock, remove_old_stocks
 from flask_apscheduler import APScheduler
 import logging
+import requests
 
 # Set up basic logging
 logging.basicConfig(level=logging.INFO)
@@ -22,8 +23,33 @@ init_db(app)
 # Set up the APScheduler
 scheduler = APScheduler()
 
-# Global variable to store matching stocks
+# Global variable to store matching stocks and notified stocks
 latest_matching_stocks = []
+notified_stocks = set()  # Set to track notified stock symbols
+
+# Telegram Bot Token and Chat ID
+TELEGRAM_TOKEN = '7864062800:AAHGK0DdXYiTsgnmM7rcIzXe6VkZ0v60vZU'  # Your bot token
+CHAT_ID = '390415235'  # Your chat ID
+
+# Function to send notification to Telegram
+def send_telegram_notification(stock):
+    message = f"New matching stock added:\nName: {stock['name']}\nSymbol: {stock['symbol']}\nTracked Opening Price: {stock['tracked_opening_price']}\nCurrent Price: {stock['current_price']}"
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {
+        'chat_id': CHAT_ID,
+        'text': message,
+        'parse_mode': 'Markdown'  # Optional: Use Markdown formatting
+    }
+
+    try:
+        response = requests.post(url, json=payload)
+        if response.status_code == 200:
+            logging.info("Notification sent successfully.")
+        else:
+            logging.error(f"Failed to send notification: {response.text}")
+    except Exception as e:
+        logging.error(f"Error sending notification: {str(e)}")
 
 @app.route('/')
 def home():
@@ -94,12 +120,17 @@ def fetch_matching_stocks_job():
                 if current_price is not None and \
                    (current_price >= stock['tracked_opening_price'] * 0.98 and \
                     current_price <= stock['tracked_opening_price'] * 1.02):
-                    matching_stocks[stock['symbol']] = {
-                        'name': stock['name'],
-                        'symbol': stock['symbol'],
-                        'tracked_opening_price': stock['tracked_opening_price'],
-                        'current_price': current_price
-                    }
+                    if stock['symbol'] not in matching_stocks:
+                        matching_stocks[stock['symbol']] = {
+                            'name': stock['name'],
+                            'symbol': stock['symbol'],
+                            'tracked_opening_price': stock['tracked_opening_price'],
+                            'current_price': current_price
+                        }
+                        # Check if we have already notified about this stock
+                        if stock['symbol'] not in notified_stocks:
+                            send_telegram_notification(matching_stocks[stock['symbol']])
+                            notified_stocks.add(stock['symbol'])  # Mark this stock as notified
             
             latest_matching_stocks = list(matching_stocks.values())  # Store unique entries only
             logging.info(f"Updated matching stocks: {latest_matching_stocks}")
