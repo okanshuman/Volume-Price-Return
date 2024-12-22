@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, jsonify
 from datetime import datetime
 from fetch_stocks import fetch_stocks, fetch_current_prices
@@ -102,7 +100,22 @@ def remove_old_stocks_job():
         except Exception as e:
             logging.error(f"Error removing old stocks: {str(e)}")
 
-# Define a job to fetch matching stocks every 5 minutes
+# Define a job to fetch new stocks every 5 minutes
+@scheduler.task('interval', id='fetch_new_stocks_job', minutes=5)
+def fetch_new_stocks_job():
+    with app.app_context():  # Ensure the app context is available
+        try:
+            logging.info("Fetching new stocks from /api/stocks...")
+            response = requests.get('http://localhost:5000/api/stocks')  # Adjust URL if needed for deployment
+            if response.status_code == 200:
+                data = response.json()
+                logging.info(f"Fetched new stocks: {data}")
+            else:
+                logging.error(f"Failed to fetch new stocks: {response.status_code} - {response.text}")
+        except Exception as e:
+            logging.error(f"Error fetching new stocks: {str(e)}")
+
+# Define a job to fetch matching stocks every minute
 @scheduler.task('interval', id='fetch_matching_stocks_job', minutes=1)
 def fetch_matching_stocks_job():
     global latest_matching_stocks  # Use global variable to store matching stocks
