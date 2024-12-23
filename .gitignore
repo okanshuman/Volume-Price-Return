@@ -173,3 +173,5 @@ cython_debug/
 ._db_operations.py
 ._fetch_stocks.py
 static/._index.html
+.DS_Store
+._.DS_Store
