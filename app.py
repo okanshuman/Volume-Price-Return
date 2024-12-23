@@ -32,7 +32,8 @@ CHAT_ID = '390415235'  # Your chat ID
 # Function to send notification to Telegram
 def send_telegram_notification(stock):
     current_price_rounded = round(stock['current_price'], 2)  # Round current price to two decimal places
-    message = f"New matching stock added:\nName: {stock['name']}\nSymbol: {stock['symbol']}\nTracked Opening Price: {stock['tracked_opening_price']}\nCurrent Price: {current_price_rounded}"
+    symbol_without_ns = stock['symbol'].replace('.NS', '')  # Remove .NS from symbol for notification
+    message = f"New matching stock added:\nName: {stock['name']}\nSymbol: {symbol_without_ns}\nTracked Opening Price: {stock['tracked_opening_price']}\nCurrent Price: {current_price_rounded}"
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
@@ -75,7 +76,7 @@ def get_stocks():
 def get_all_stocks():
     try:
         all_stocks = Stock.query.all()  # Query all stock records
-        result = [{'name': stock.name, 'symbol': stock.symbol, 'date': stock.date, 'tracked_opening_price': stock.tracked_opening_price} for stock in all_stocks]
+        result = [{'name': stock.name, 'symbol': stock.symbol.replace('.NS', ''), 'date': stock.date, 'tracked_opening_price': stock.tracked_opening_price} for stock in all_stocks]
         
         logging.info(f"Fetched stocks: {result}")  # Log the fetched stocks
         return jsonify(result)
@@ -146,7 +147,7 @@ def fetch_matching_stocks_job():
                     if stock['symbol'] not in matching_stocks:
                         matching_stocks[stock['symbol']] = {
                             'name': stock['name'],
-                            'symbol': stock['symbol'],
+                            'symbol': stock['symbol'].replace('.NS', ''),  # Remove .NS for display purposes 
                             'tracked_opening_price': stock['tracked_opening_price'],
                             'current_price': current_price
                         }
