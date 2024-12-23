@@ -49,16 +49,40 @@
         #stockTable tr:hover {
             background-color: #5dade2;
         }
+        
+        /* Link Color Styles */
+        a:link {
+            color: green; /* Unvisited link */
+            text-decoration: none; /* No underline */
+        }
+        
+        a:visited {
+            color: pink; /* Visited link */
+            text-decoration: none; /* No underline */
+        }
+        
+        a:hover {
+            color: red; /* Hover link */
+            text-decoration: underline; /* Underline on hover */
+        }
+        
+        a:active {
+            color: yellow; /* Active link (when clicked) */
+            text-decoration: underline; /* Underline when active */
+        }
+
         .loading {
             text-align: center;
             font-weight: bold;
-            color: #e74c3c;
+            color: #e74c3c; /* Red for loading/error messages */
         }
+
         .note {
-            margin-top: 20px;
-            text-align: center;
-            color: #ecf0f1;
+            margin-top: 20px; /* Space above the note */
+            text-align: center; /* Center align the note */
+            color: #ecf0f1; /* Light gray color for the note */
         }
+
     </style>
 </head>
 <body>
