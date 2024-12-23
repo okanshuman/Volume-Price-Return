@@ -25,7 +25,7 @@ scheduler = APScheduler()
 latest_matching_stocks = []
 notified_stocks = set()  # Set to track notified stock symbols
 
-# Telegram Bot Token and Chat ID
+# Telegram Bot Token and Chat ID (keep as is)
 TELEGRAM_TOKEN = '7864062800:AAHGK0DdXYiTsgnmM7rcIzXe6VkZ0v60vZU'  # Your bot token
 CHAT_ID = '390415235'  # Your chat ID
 
@@ -100,7 +100,7 @@ def remove_old_stocks_job():
         except Exception as e:
             logging.error(f"Error removing old stocks: {str(e)}")
 
-# Define a job to fetch new stocks every 5 minutes
+# Define a job to fetch new stocks every 15 minutes
 @scheduler.task('interval', id='fetch_new_stocks_job', minutes=15)
 def fetch_new_stocks_job():
     with app.app_context():  # Ensure the app context is available
@@ -123,7 +123,16 @@ def fetch_matching_stocks_job():
         try:
             logging.info("Fetching matching stocks...")
             all_stocks = Stock.query.all()  # Get all stocks from the database
-            stocks_to_check = [{'name': stock.name, 'symbol': stock.symbol, 'tracked_opening_price': stock.tracked_opening_price} for stock in all_stocks]
+            
+            # Get today's date in string format
+            today_date = datetime.now().strftime("%Y-%m-%d")
+
+            # Filter out stocks that were added today 
+            stocks_to_check = [
+                {'name': stock.name, 'symbol': stock.symbol, 'tracked_opening_price': stock.tracked_opening_price}
+                for stock in all_stocks if stock.date != today_date
+            ]
+
             current_prices = fetch_current_prices(stocks_to_check)  # Fetch current prices
             
             # Logic to find matching stocks (within ±2%)
