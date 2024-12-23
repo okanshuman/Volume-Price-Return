@@ -31,7 +31,8 @@ CHAT_ID = '390415235'  # Your chat ID
 
 # Function to send notification to Telegram
 def send_telegram_notification(stock):
-    message = f"New matching stock added:\nName: {stock['name']}\nSymbol: {stock['symbol']}\nTracked Opening Price: {stock['tracked_opening_price']}\nCurrent Price: {stock['current_price']}"
+    current_price_rounded = round(stock['current_price'], 2)  # Round current price to two decimal places
+    message = f"New matching stock added:\nName: {stock['name']}\nSymbol: {stock['symbol']}\nTracked Opening Price: {stock['tracked_opening_price']}\nCurrent Price: {current_price_rounded}"
 
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
